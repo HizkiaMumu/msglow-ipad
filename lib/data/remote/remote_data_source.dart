@@ -17,7 +17,8 @@ import '../../domain/usecases/update_profile_usecase.dart';
 import 'api/api_service.dart';
 import 'request/input_pengeluaran/add_pengeluaran_baru_request.dart';
 import 'request/penjualan/add_customer_request.dart';
-import 'request/refund_order_request.dart';
+import 'request/refund/refund_item_request.dart';
+import 'request/refund/refund_order_request.dart';
 import 'request/transaction/add_outcome_request.dart';
 import 'request/transaction/closing_request.dart';
 import 'request/transaction/send_closing_mail_request.dart';
@@ -54,22 +55,26 @@ class RemoteDataSource {
     return LoginResponse.fromJson(_response.data);
   }
 
-  Future<ProductListResponse> fetchProductList(FetchProductListUseCaseParams params) async {
+  Future<ProductListResponse> fetchProductList(
+      FetchProductListUseCaseParams params) async {
     final _response = await _apiService.fetchProductList(params);
     return ProductListResponse.fromJson(_response.data);
   }
 
-  Future<CustomerResponse> fetchCustomers(FetchCustomersUseCaseParams params) async {
+  Future<CustomerResponse> fetchCustomers(
+      FetchCustomersUseCaseParams params) async {
     final _response = await _apiService.fetchCustomers(params);
     return CustomerResponse.fromJson(_response.data);
   }
 
-  Future<TransactionResponse> fetchTransactions(FetchTransactionsUseCaseParams params) async {
+  Future<TransactionResponse> fetchTransactions(
+      FetchTransactionsUseCaseParams params) async {
     final _response = await _apiService.fetchTransactions(params);
     return TransactionResponse.fromJson(_response.data);
   }
 
-  Future<SubmitOrderResponse> submitOrder(SubmitOrderUseCaseParams params) async {
+  Future<SubmitOrderResponse> submitOrder(
+      SubmitOrderUseCaseParams params) async {
     final _response = await _apiService.submitOrder(params);
     return SubmitOrderResponse.fromJson(_response.data);
   }
@@ -79,18 +84,25 @@ class RemoteDataSource {
     return BaseResponse.fromJson(_response.data);
   }
 
+  Future<BaseResponse> refundItem(RefundItemRequest request) async {
+    final _response = await _apiService.refundItem(request);
+    return BaseResponse.fromJson(_response.data);
+  }
+
   Future<CashAmountSuggestionResponse> calculateCashAmountSuggestion(
       CalculateCashAmountSuggestionUseCaseParams params) async {
     final _response = await _apiService.calculateCashAmountSuggestion(params);
     return CashAmountSuggestionResponse.fromJson(_response.data);
   }
 
-  Future<CustomerElementResponse> addCustomer(AddCustomerRequest request) async {
+  Future<CustomerElementResponse> addCustomer(
+      AddCustomerRequest request) async {
     final _response = await _apiService.addCustomer(request);
     return CustomerElementResponse.fromJson(_response.data);
   }
 
-  Future<StatusCustomerListResponse> fetchStatusCustomerList(NoParam params) async {
+  Future<StatusCustomerListResponse> fetchStatusCustomerList(
+      NoParam params) async {
     final _response = await _apiService.fetchStatusCustomerList(params);
     return StatusCustomerListResponse.fromJson(_response.data);
   }
@@ -100,22 +112,26 @@ class RemoteDataSource {
     return ClosingResponse.fromJson(_response.data);
   }
 
-  Future<ListPengeluaranResponse> fetchListPengeluaran(FetchListPengeluaranUseCaseParams params) async {
+  Future<ListPengeluaranResponse> fetchListPengeluaran(
+      FetchListPengeluaranUseCaseParams params) async {
     final _response = await _apiService.fetchListPengeluaran(params);
     return ListPengeluaranResponse.fromJson(_response.data);
   }
 
-  Future<BaseResponse> addPengeluaranBaru(AddPengeluaranBaruRequest request) async {
+  Future<BaseResponse> addPengeluaranBaru(
+      AddPengeluaranBaruRequest request) async {
     final _response = await _apiService.addPengeluaranBaru(request);
     return BaseResponse.fromJson(_response.data);
   }
 
-  Future<BaseResponse> sendClosingMail(SendClosingMailRequest request, SendClosingMailUseCaseParams params) async {
+  Future<BaseResponse> sendClosingMail(SendClosingMailRequest request,
+      SendClosingMailUseCaseParams params) async {
     final _response = await _apiService.sendClosingMail(request, params);
     return BaseResponse.fromJson(_response.data);
   }
 
-  Future<OutcomesResponse> fetchOutcomes(FetchOutcomesUseCaseParams params) async {
+  Future<OutcomesResponse> fetchOutcomes(
+      FetchOutcomesUseCaseParams params) async {
     final _response = await _apiService.fetchOutcomes(params);
     return OutcomesResponse.fromJson(_response.data);
   }
@@ -125,7 +141,8 @@ class RemoteDataSource {
     return BaseResponse.fromJson(_response.data);
   }
 
-  Future<ProductCategoriesAndPackagesResponse> getProductCategoriesAndPackagesResponse() async {
+  Future<ProductCategoriesAndPackagesResponse>
+      getProductCategoriesAndPackagesResponse() async {
     final response = await _apiService.getProductCategoriesAndPackages();
     return ProductCategoriesAndPackagesResponse.fromJson(response.data);
   }
@@ -140,17 +157,20 @@ class RemoteDataSource {
     return BankAccountListResponse.fromJson(response.data);
   }
 
-  Future<IncomeResponse> getIncomeList({required FetchIncomeListUseCaseParams date}) async {
+  Future<IncomeResponse> getIncomeList(
+      {required FetchIncomeListUseCaseParams date}) async {
     final response = await _apiService.getIncomeList(date);
     return IncomeResponse.fromJson(response.data);
   }
 
-  Future<BaseResponse> updateOrderPrintStatus(UpdateOrderPrintStatusUsecaseParams params) async {
+  Future<BaseResponse> updateOrderPrintStatus(
+      UpdateOrderPrintStatusUsecaseParams params) async {
     final _response = await _apiService.updateOrderPrintStatus(params);
     return BaseResponse.fromJson(_response.data);
   }
 
-  Future<BaseResponse> updatePreOrderStatus(UpdatePreOrderStatusUseCaseParams params) async {
+  Future<BaseResponse> updatePreOrderStatus(
+      UpdatePreOrderStatusUseCaseParams params) async {
     final _response = await _apiService.updatePreOrderStatus(params);
     return BaseResponse.fromJson(_response.data);
   }

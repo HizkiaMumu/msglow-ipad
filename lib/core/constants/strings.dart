@@ -117,4 +117,7 @@ class Strings {
   static const String printPreview = 'Print Preview';
   static const String pengirim = 'Pengirim:';
   static const String penerima = 'Penerima:';
+  static const String refundConfirmationDialogTitle = 'Konfirmasi Refund';
+  static const String refundConfirmationDialogContent =
+      'Apakah anda yakin ingin melakukan refund item ini?';
 }

@@ -14,7 +14,7 @@ class TotalOrderAmount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(
+      padding: EdgeInsets.only( 
         top: Sizes.height33,
       ),
       child: Column(

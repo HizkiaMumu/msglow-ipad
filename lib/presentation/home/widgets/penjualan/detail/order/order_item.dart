@@ -2,6 +2,9 @@ import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:flutter_kasir/core/constants/strings.dart';
+import 'package:flutter_kasir/core/utils/currency_formatter.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../../../core/constants/image_asset.dart';
@@ -34,17 +37,20 @@ class OrderItem extends StatefulWidget {
 class _OrderItemState extends State<OrderItem> {
   TextEditingController? _quantityController;
   TextEditingController? _noteController;
+  TextEditingController? _diskonController;
   FocusNode? _quantityFocusNode;
   FocusNode? _noteFocusNode;
 
   @override
   void initState() {
-    _quantityController = TextEditingController(text: widget.orderProduct.quantity.toString());
+    _quantityController =
+        TextEditingController(text: widget.orderProduct.quantity.toString());
     _noteController = widget.orderProduct.isCustomProduct
         ? TextEditingController(text: widget.orderProduct.product.description)
         : TextEditingController(text: widget.orderProduct.note);
     _quantityFocusNode = FocusNode();
     _noteFocusNode = FocusNode();
+    _diskonController = TextEditingController();
     super.initState();
   }
 
@@ -54,20 +60,25 @@ class _OrderItemState extends State<OrderItem> {
     _quantityFocusNode?.dispose();
     _noteController?.dispose();
     _noteFocusNode?.dispose();
+    _diskonController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final _standardPrice = widget.orderProduct.product.getStandardPriceInInt();
-    final _productPrice =
-        int.parse(widget.orderProduct.costCategory?.amount ?? widget.orderProduct.product.standardPrice);
+    final _productPrice = int.parse(widget.orderProduct.costCategory?.amount ??
+        widget.orderProduct.product.standardPrice);
+    final discountPrice =
+        int.parse(removeIdrFormat(widget.orderProduct.discount ?? '0'));
     final _shouldVisiblePreviousPrice =
-        (widget.orderProduct.costCategory?.id ?? 0) > 0 && _productPrice != _standardPrice;
+        (widget.orderProduct.costCategory?.id ?? 0) > 0 &&
+            _productPrice != _standardPrice;
 
     _quantityController
       ?..text = widget.orderProduct.quantity.toString()
-      ..selection = TextSelection.collapsed(offset: widget.orderProduct.quantity.toString().length);
+      ..selection = TextSelection.collapsed(
+          offset: widget.orderProduct.quantity.toString().length);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,11 +108,14 @@ class _OrderItemState extends State<OrderItem> {
                 }),
               ),
             ),
-            !widget.orderProduct.isProductPakage && !widget.orderProduct.isCustomProduct
+            !widget.orderProduct.isProductPakage &&
+                    !widget.orderProduct.isCustomProduct
                 ? PreOrderCheckbox(
                     value: widget.orderProduct.isPreOrder,
                     onChanged: (value) {
-                      GetUtil.context.read<PenjualanCubit>().updatePreOrder(widget.orderProduct, value ?? false);
+                      GetUtil.context
+                          .read<PenjualanCubit>()
+                          .updatePreOrder(widget.orderProduct, value ?? false);
                     },
                   )
                 : const SizedBox.shrink()
@@ -112,140 +126,227 @@ class _OrderItemState extends State<OrderItem> {
         ),
         // Product info
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MyText(
-                text: widget.orderProduct.product.name ?? '-',
-                fontSize: Sizes.sp16,
-                fontWeight: FontWeight.w500,
-                textType: TextType.bodyText1,
-              ),
-              SizedBox(
-                height: Sizes.height7,
-              ),
-              Row(
-                children: [
-                  MyText(
-                    text: formatToIdr(_productPrice),
-                    fontSize: Sizes.sp14,
-                    fontWeight: FontWeight.w500,
-                    textType: TextType.bodyText1,
-                    color: ColorPalettes.greyText3,
-                  ),
-                  Visibility(
-                    visible: _shouldVisiblePreviousPrice,
-                    child: MyText(
-                      text: formatToIdr(_standardPrice),
-                      fontSize: Sizes.sp14,
-                      fontWeight: FontWeight.w500,
-                      textType: TextType.bodyText1,
-                      color: ColorPalettes.greyText3,
-                      margin: EdgeInsets.only(
-                        left: Sizes.width8,
+          child: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Flexible(
+                      flex: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          MyText(
+                            text: widget.orderProduct.product.name ?? '-',
+                            fontSize: Sizes.sp16,
+                            fontWeight: FontWeight.w500,
+                            textType: TextType.bodyText1,
+                          ),
+                          SizedBox(
+                            height: Sizes.height7,
+                          ),
+                          Row(
+                            children: [
+                              MyText(
+                                text: formatToIdr(
+                                    widget.orderProduct.discount != null &&
+                                            widget.orderProduct.discount!
+                                                .isNotEmpty &&
+                                            discountPrice > 0
+                                        ? _productPrice - discountPrice
+                                        : _productPrice),
+                                fontSize: Sizes.sp14,
+                                fontWeight: FontWeight.w500,
+                                textType: TextType.bodyText1,
+                                color: ColorPalettes.greyText3,
+                              ),
+                              Visibility(
+                                visible: _shouldVisiblePreviousPrice ||
+                                    widget.orderProduct.discount != null &&
+                                        widget.orderProduct.discount!
+                                            .isNotEmpty &&
+                                        discountPrice > 0,
+                                child: MyText(
+                                  text: formatToIdr(
+                                      widget.orderProduct.discount != null &&
+                                              widget.orderProduct.discount!
+                                                  .isNotEmpty &&
+                                              discountPrice > 0
+                                          ? _productPrice
+                                          : _standardPrice),
+                                  fontSize: Sizes.sp14,
+                                  fontWeight: FontWeight.w500,
+                                  textType: TextType.bodyText1,
+                                  color: ColorPalettes.greyText3,
+                                  margin: EdgeInsets.only(
+                                    left: Sizes.width8,
+                                  ),
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      decoration: TextDecoration.lineThrough,
                     ),
+                    // Order quantity
+                    Flexible(
+                      flex: 2,
+                      child: Card(
+                        elevation: 0,
+                        margin: EdgeInsets.only(
+                          left: Sizes.width14,
+                        ),
+                        child: InkWell(
+                          child: SvgPicture.asset(
+                            ImageAsset.icMinus,
+                            height: Sizes.height24,
+                            width: Sizes.height24,
+                            color: ColorPalettes.gold,
+                          ),
+                          onTap: _onTapRemove,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Sizes.width18,
+                      ),
+                      child: IntrinsicWidth(
+                        child: TextField(
+                          controller: _quantityController,
+                          focusNode: _quantityFocusNode,
+                          style: TextStyle(
+                            fontSize: Sizes.sp23,
+                            fontWeight: FontWeight.w500,
+                            color: ColorPalettes.gold,
+                          ),
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: const InputDecoration(
+                            border: UnderlineInputBorder(
+                              borderSide: BorderSide.none,
+                            ),
+                            isCollapsed: true,
+                          ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            FilteringTextInputFormatter.deny(RegExp(r'^0')),
+                            RangeFormatter(
+                              min: 1,
+                              max: int.parse(
+                                  widget.orderProduct.product.stock ?? '0'),
+                            )
+                          ],
+                          onChanged: (value) => _onChangeQuantity(value),
+                          onSubmitted: (value) => _onSubmitQuantity(value),
+                        ),
+                      ),
+                    ),
+                    Card(
+                      elevation: 0,
+                      margin: EdgeInsets.zero,
+                      child: InkWell(
+                        child: SvgPicture.asset(
+                          ImageAsset.icPlus,
+                          height: Sizes.height24,
+                          width: Sizes.height24,
+                          color: ColorPalettes.gold,
+                        ),
+                        onTap: _onTapAdd,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                SizedBox(
+                  width: double.maxFinite,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Visibility(
+                          visible: !widget.orderProduct.isCustomProduct ||
+                              widget.orderProduct.isProductPakage,
+                          maintainState: true,
+                          maintainAnimation: true,
+                          maintainSize: false,
+                          child: PriceCategoryDropdown(
+                            index: widget.index,
+                            orderProduct: widget.orderProduct,
+                            productPriceQty: widget
+                                .orderProduct.product.productPriceQuantities,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            top: Sizes.height7,
+                          ),
+                          height: Sizes.height28,
+                          child: FormBuilderTextField(
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              FilteringTextInputFormatter.deny(RegExp(r'^0')),
+                              CurrencyFormatter(),
+                            ],
+                            style: TextStyle(
+                              fontSize: Sizes.sp11,
+                            ),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              filled: true,
+                              fillColor: ColorPalettes.greyForm,
+                              hintText: Strings.diskon,
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(Sizes.radius5),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: Sizes.height8,
+                                horizontal: Sizes.width8,
+                              ),
+                            ),
+                            onChanged: _onChangeDiscount,
+                            name: 'diskonForm',
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-
-              // Menu kategori harga
-              Visibility(
-                visible: !widget.orderProduct.isCustomProduct || widget.orderProduct.isProductPakage,
-                maintainState: true,
-                maintainAnimation: true,
-                maintainSize: false,
-                child: PriceCategoryDropdown(
-                  index: widget.index,
-                  orderProduct: widget.orderProduct,
-                  productPriceQty: widget.orderProduct.product.productPriceQuantities,
                 ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: Sizes.width150,
-                child: TextField(
-                  controller: _noteController,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    fillColor: ColorPalettes.bgGrey4,
-                    hintStyle: TextStyle(fontSize: 10),
-                    hintText: 'Catatan',
-                    filled: true,
-                    isDense: true,
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: Sizes.width150,
+                  child: TextField(
+                    controller: _noteController,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      fillColor: ColorPalettes.bgGrey4,
+                      hintStyle: TextStyle(fontSize: 10),
+                      hintText: 'Catatan',
+                      filled: true,
+                      isDense: true,
+                    ),
+                    onChanged: (val) {
+                      GetUtil.context
+                          .read<PenjualanCubit>()
+                          .updateOrderNote(widget.orderProduct, val);
+                    },
+                    maxLines: 2,
+                    style: const TextStyle(fontSize: 10),
                   ),
-                  onChanged: (val) {
-                    GetUtil.context.read<PenjualanCubit>().updateOrderNote(widget.orderProduct, val);
-                  },
-                  maxLines: 2,
-                  style: const TextStyle(fontSize: 10),
                 ),
-              ),
-            ],
-          ),
-        ),
-        // Order quantity
-        Card(
-          elevation: 0,
-          margin: EdgeInsets.only(
-            left: Sizes.width14,
-          ),
-          child: InkWell(
-            child: SvgPicture.asset(
-              ImageAsset.icMinus,
-              height: Sizes.height24,
-              width: Sizes.height24,
-              color: ColorPalettes.gold,
-            ),
-            onTap: _onTapRemove,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Sizes.width18,
-          ),
-          child: IntrinsicWidth(
-            child: TextField(
-              controller: _quantityController,
-              focusNode: _quantityFocusNode,
-              style: TextStyle(
-                fontSize: Sizes.sp23,
-                fontWeight: FontWeight.w500,
-                color: ColorPalettes.gold,
-              ),
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              decoration: const InputDecoration(
-                border: UnderlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                isCollapsed: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                FilteringTextInputFormatter.deny(RegExp(r'^0')),
-                RangeFormatter(
-                  min: 1,
-                  max: int.parse(widget.orderProduct.product.stock ?? '0'),
-                )
               ],
-              onChanged: (value) => _onChangeQuantity(value),
-              onSubmitted: (value) => _onSubmitQuantity(value),
             ),
-          ),
-        ),
-        Card(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          child: InkWell(
-            child: SvgPicture.asset(
-              ImageAsset.icPlus,
-              height: Sizes.height24,
-              width: Sizes.height24,
-              color: ColorPalettes.gold,
-            ),
-            onTap: _onTapAdd,
           ),
         ),
       ],
@@ -254,12 +355,16 @@ class _OrderItemState extends State<OrderItem> {
 
   _onTapAdd() {
     _quantityFocusNode?.unfocus();
-    GetUtil.context.read<PenjualanCubit>().addOrderQuantity(widget.orderProduct);
+    GetUtil.context
+        .read<PenjualanCubit>()
+        .addOrderQuantity(widget.orderProduct);
   }
 
   _onTapRemove() {
     _quantityFocusNode?.unfocus();
-    GetUtil.context.read<PenjualanCubit>().reduceOrderQuantity(widget.orderProduct);
+    GetUtil.context
+        .read<PenjualanCubit>()
+        .reduceOrderQuantity(widget.orderProduct);
   }
 
   _onChangeQuantity(String value) {
@@ -268,9 +373,9 @@ class _OrderItemState extends State<OrderItem> {
       'change-quantity',
       Duration(milliseconds: _debounceDurationInMs),
       () {
-        GetUtil.context
-            .read<PenjualanCubit>()
-            .addOrderQuantity(widget.orderProduct, newQuantity: int.parse(value.isEmpty ? '1' : value));
+        GetUtil.context.read<PenjualanCubit>().addOrderQuantity(
+            widget.orderProduct,
+            newQuantity: int.parse(value.isEmpty ? '1' : value));
       },
     );
   }
@@ -281,5 +386,17 @@ class _OrderItemState extends State<OrderItem> {
     }
 
     GetUtil.context.read<PenjualanCubit>().removeOrderItem(widget.orderProduct);
+  }
+
+  _onChangeDiscount(String? value) {
+    if (value?.isEmpty ?? false) {
+      GetUtil.context
+          .read<PenjualanCubit>()
+          .updateDiscount(widget.orderProduct, 'Rp 0');
+    } else {
+      GetUtil.context
+          .read<PenjualanCubit>()
+          .updateDiscount(widget.orderProduct, value);
+    }
   }
 }
