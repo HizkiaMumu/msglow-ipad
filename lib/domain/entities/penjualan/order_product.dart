@@ -11,6 +11,7 @@ class OrderProduct extends Equatable {
   final bool isProductPakage;
   final String note;
   final bool isPreOrder;
+  final String? discount;
 
   const OrderProduct({
     required this.product,
@@ -20,10 +21,12 @@ class OrderProduct extends Equatable {
     required this.isProductPakage,
     this.note = '',
     this.isPreOrder = false,
+    this.discount,
   });
 
   String getMatchedPriceString(CustomerElement? customerElement) {
-    if (costCategory == null || customerElement == null && costCategory!.id == 1) {
+    if (costCategory == null ||
+        customerElement == null && costCategory!.id == 1) {
       return product.productPriceQuantities?.first.price ?? '0';
     }
 
@@ -34,7 +37,8 @@ class OrderProduct extends Equatable {
     return int.parse(getMatchedPriceString(customerElement)) * quantity;
   }
 
-  int get getSubtotalPerProduct => int.parse(product.productPriceQuantities?.first.price ?? '0') * quantity;
+  int get getSubtotalPerProduct =>
+      int.parse(product.productPriceQuantities?.first.price ?? '0') * quantity;
 
   OrderProduct copyWith({
     Product? product,
@@ -44,6 +48,7 @@ class OrderProduct extends Equatable {
     bool? isProductPackage,
     String? note,
     bool? isPreOrder,
+    String? discount,
   }) {
     return OrderProduct(
       product: product ?? this.product,
@@ -53,6 +58,7 @@ class OrderProduct extends Equatable {
       isProductPakage: isProductPackage ?? isProductPakage,
       note: note ?? this.note,
       isPreOrder: isPreOrder ?? this.isPreOrder,
+      discount: discount ?? this.discount,
     );
   }
 
@@ -65,5 +71,6 @@ class OrderProduct extends Equatable {
         isProductPakage,
         note,
         isPreOrder,
+        discount,
       ];
 }

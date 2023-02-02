@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter_kasir/domain/usecases/refund_item_usecase.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
@@ -31,6 +32,7 @@ part 'transaction_state.dart';
 class TransactionCubit extends Cubit<TransactionState> {
   final FetchTransactionsUseCase _fetchTransactionsUseCase;
   final RefundOrderUseCase _refundOrderUseCase;
+  final RefundItemUseCase _refundItemUseCase;
   final ClosingUseCase _closingUseCase;
   final SendClosingMailUseCase _sendClosingMailUseCase;
   final GetClosingMailUseCase _getClosingMailUseCase;
@@ -43,6 +45,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   TransactionCubit(
     this._fetchTransactionsUseCase,
     this._refundOrderUseCase,
+    this._refundItemUseCase,
     this._closingUseCase,
     this._sendClosingMailUseCase,
     this._getClosingMailUseCase,
@@ -59,7 +62,8 @@ class TransactionCubit extends Cubit<TransactionState> {
       filterDate: filterDate,
     ));
 
-    final _result = await _fetchTransactionsUseCase(FetchTransactionsUseCaseParams(
+    final _result =
+        await _fetchTransactionsUseCase(FetchTransactionsUseCaseParams(
       filterDate: filterDate,
     ));
 
@@ -82,7 +86,9 @@ class TransactionCubit extends Cubit<TransactionState> {
             final users = <User>[];
 
             for (var order in r.orders ?? []) {
-              if (order.user != null && order.user!.name != null && !names.contains(order.user!.name)) {
+              if (order.user != null &&
+                  order.user!.name != null &&
+                  !names.contains(order.user!.name)) {
                 names.add(order.user!.name!);
                 users.add(order.user);
               }
@@ -110,8 +116,26 @@ class TransactionCubit extends Cubit<TransactionState> {
     ));
 
     _result.fold(
-      (l) => emit(state.copyWith(refundOrderResult: ResultState.error(failure: l))),
-      (r) => emit(state.copyWith(refundOrderResult: ResultState.success(data: r))),
+      (l) => emit(
+          state.copyWith(refundOrderResult: ResultState.error(failure: l))),
+      (r) =>
+          emit(state.copyWith(refundOrderResult: ResultState.success(data: r))),
+    );
+  }
+
+  refundItem({required int orderId, required int productId}) async {
+    emit(state.copyWith(refundOrderResult: const ResultState.loading()));
+
+    final _result = await _refundItemUseCase(RefundItemUseCaseParams(
+      orderId: orderId,
+      productId: productId,
+    ));
+
+    _result.fold(
+      (l) => emit(
+          state.copyWith(refundOrderResult: ResultState.error(failure: l))),
+      (r) =>
+          emit(state.copyWith(refundOrderResult: ResultState.success(data: r))),
     );
   }
 
@@ -119,7 +143,9 @@ class TransactionCubit extends Cubit<TransactionState> {
     emit(state.copyWith(closingResult: const ResultState.loading()));
 
     final cashier = state.cashierNames.firstWhereOrNull(
-      (element) => element.name?.toLowerCase() == state.selectedCashierName.toLowerCase(),
+      (element) =>
+          element.name?.toLowerCase() ==
+          state.selectedCashierName.toLowerCase(),
     );
 
     final _result = await _closingUseCase(ClosingUseCaseParams(
@@ -149,15 +175,19 @@ class TransactionCubit extends Cubit<TransactionState> {
         return true;
       }
 
-      final equalCustomerName =
-          (element.customer?.fullName ?? 'Non Member').toLowerCase().contains(keyword.toLowerCase());
+      final equalCustomerName = (element.customer?.fullName ?? 'Non Member')
+          .toLowerCase()
+          .contains(keyword.toLowerCase());
 
       final equalCashierName = element.user != null &&
           element.user!.name != null &&
           (element.user!.name!.toLowerCase().contains(keyword.toLowerCase()));
 
       return element.orderProducts?.firstWhereOrNull((orderProduct) =>
-                  orderProduct.product?.name?.toLowerCase().contains(keyword.toLowerCase()) ?? false) !=
+                  orderProduct.product?.name
+                      ?.toLowerCase()
+                      .contains(keyword.toLowerCase()) ??
+                  false) !=
               null ||
           equalCustomerName ||
           equalCashierName;
@@ -172,7 +202,9 @@ class TransactionCubit extends Cubit<TransactionState> {
         final users = <User>[];
 
         for (var order in _orders) {
-          if (order.user != null && order.user!.name != null && !names.contains(order.user!.name)) {
+          if (order.user != null &&
+              order.user!.name != null &&
+              !names.contains(order.user!.name)) {
             names.add(order.user!.name!);
             users.add(order.user!);
           }
@@ -194,24 +226,31 @@ class TransactionCubit extends Cubit<TransactionState> {
       filterDate: state.filterDate,
     ));
 
-    _result.fold((l) => emit(state.copyWith(sendClosingMailResult: ResultState.error(failure: l))),
-        (r) => emit(state.copyWith(sendClosingMailResult: ResultState.success(data: r))));
+    _result.fold(
+        (l) => emit(state.copyWith(
+            sendClosingMailResult: ResultState.error(failure: l))),
+        (r) => emit(state.copyWith(
+            sendClosingMailResult: ResultState.success(data: r))));
   }
 
   getClosingMail() {
     emit(state.copyWith(getClosingMailResult: const ResultState.loading()));
     final _result = _getClosingMailUseCase(const NoParam());
-    emit(state.copyWith(getClosingMailResult: ResultState.success(data: _result)));
+    emit(state.copyWith(
+        getClosingMailResult: ResultState.success(data: _result)));
   }
 
   fetchOutcomes({DateTime? filterDate}) async {
     emit(state.copyWith(fetchOutcomesResult: const ResultState.loading()));
 
-    final _result = await _fetchOutcomesUseCase(FetchOutcomesUseCaseParams(filterDate: state.filterDate));
+    final _result = await _fetchOutcomesUseCase(
+        FetchOutcomesUseCaseParams(filterDate: state.filterDate));
 
     _result.fold(
-      (l) => emit(state.copyWith(fetchOutcomesResult: ResultState.error(failure: l))),
-      (r) => emit(state.copyWith(fetchOutcomesResult: ResultState.success(data: r))),
+      (l) => emit(
+          state.copyWith(fetchOutcomesResult: ResultState.error(failure: l))),
+      (r) => emit(
+          state.copyWith(fetchOutcomesResult: ResultState.success(data: r))),
     );
   }
 
@@ -238,10 +277,14 @@ class TransactionCubit extends Cubit<TransactionState> {
       amount: amount,
     ));
 
-    _result.fold((l) => emit(state.copyWith(addInOutcomeResult: ResultState.error(failure: l))), (r) {
+    _result.fold(
+        (l) => emit(
+            state.copyWith(addInOutcomeResult: ResultState.error(failure: l))),
+        (r) {
       emit(state.copyWith(addInOutcomeResult: ResultState.success(data: r)));
       if (mode == 2) {
-        fetchIncomeList(date.isEmpty ? null : DateFormat("yyyy-MM-dd").parse(date));
+        fetchIncomeList(
+            date.isEmpty ? null : DateFormat("yyyy-MM-dd").parse(date));
       }
     });
   }
@@ -249,23 +292,27 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<void> fetchIncomeList(DateTime? dateTime) async {
     emit(state.copyWith(fetchIncomeListResult: const ResultState.loading()));
     DateFormat format = DateFormat("yyyy-MM-dd");
-    final _result = await _fetchIncomeListUseCase(
-        FetchIncomeListUseCaseParams(date: format.format(state.filterDate ?? DateTime.now())));
+    final _result = await _fetchIncomeListUseCase(FetchIncomeListUseCaseParams(
+        date: format.format(state.filterDate ?? DateTime.now())));
     _result.fold(
-      (l) => emit(state.copyWith(fetchIncomeListResult: ResultState.error(failure: l))),
-      (r) => emit(state.copyWith(fetchIncomeListResult: ResultState.success(data: r))),
+      (l) => emit(
+          state.copyWith(fetchIncomeListResult: ResultState.error(failure: l))),
+      (r) => emit(
+          state.copyWith(fetchIncomeListResult: ResultState.success(data: r))),
     );
   }
 
   Future<void> updatePrintStatus(int? id) async {
     emit(state.copyWith(fetchTransactionResult: const ResultState.loading()));
-    await _updateOrderPrintStatusUsecase(UpdateOrderPrintStatusUsecaseParams(orderId: "$id"));
+    await _updateOrderPrintStatusUsecase(
+        UpdateOrderPrintStatusUsecaseParams(orderId: "$id"));
     fetchTransactions();
   }
 
   Future<void> updatePreOrderStatus(int? id) async {
     emit(state.copyWith(fetchTransactionResult: const ResultState.loading()));
-    await _updatePreOrderStatusUsecase(UpdatePreOrderStatusUseCaseParams(productId: "$id"));
+    await _updatePreOrderStatusUsecase(
+        UpdatePreOrderStatusUseCaseParams(productId: "$id"));
     fetchTransactions();
   }
 }
