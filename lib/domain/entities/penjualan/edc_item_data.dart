@@ -32,5 +32,10 @@ class EdcItemData extends Equatable {
       name: 'Mandiri',
       imageAsset: ImageAsset.logoMandiri,
     ),
+    EdcItemData(
+      id: 3,
+      name: 'BRI',
+      imageAsset: ImageAsset.logoBri,
+    ),
   ];
 }

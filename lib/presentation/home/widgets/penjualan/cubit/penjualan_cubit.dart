@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter_kasir/core/utils/utils.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:get/get.dart';
 import 'package:injectable/injectable.dart';
@@ -49,14 +50,17 @@ class PenjualanCubit extends Cubit<PenjualanState> {
   ) : super(PenjualanState.initial());
 
   addOrderItem(Product product) {
-    if (state.orderItems.firstWhereOrNull((element) => element.product == product) != null) return;
+    if (state.orderItems
+            .firstWhereOrNull((element) => element.product == product) !=
+        null) return;
 
     emit(state.copyWith(orderState: OrderState.loading));
 
     emit(state.copyWith(
       orderItems: state.orderItems
         ..add(
-          OrderProduct(product: product, isProductPakage: product.isProductPackage),
+          OrderProduct(
+              product: product, isProductPakage: product.isProductPackage),
         ),
       orderState: OrderState.finish,
     ));
@@ -67,7 +71,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
   updateOrderNote(OrderProduct orderProduct, String note) {
     emit(state.copyWith(orderState: OrderState.loading));
 
-    final _index = state.orderItems.indexWhere((element) => element == orderProduct);
+    final _index =
+        state.orderItems.indexWhere((element) => element == orderProduct);
     if (_index == -1) {
       emit(state.copyWith(orderState: OrderState.finish));
       return; // Break the method when order item not exist
@@ -75,7 +80,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
 
     emit(
       state.copyWith(
-        orderItems: state.orderItems..[_index] = orderProduct.copyWith(note: note),
+        orderItems: state.orderItems
+          ..[_index] = orderProduct.copyWith(note: note),
         orderState: OrderState.finish,
       ),
     );
@@ -87,12 +93,32 @@ class PenjualanCubit extends Cubit<PenjualanState> {
   }) {
     emit(state.copyWith(orderState: OrderState.loading));
 
-    final _index = state.orderItems.indexWhere((element) => element == orderProduct);
+    final _index =
+        state.orderItems.indexWhere((element) => element == orderProduct);
     if (_index == -1) return; // Break the method when order item not exist
     emit(
       state.copyWith(
         orderItems: state.orderItems
-          ..[_index] = orderProduct.copyWith(quantity: newQuantity ?? orderProduct.quantity + 1),
+          ..[_index] = orderProduct.copyWith(
+              quantity: newQuantity ?? orderProduct.quantity + 1),
+        orderState: OrderState.finish,
+      ),
+    );
+
+    _calculateProductPrice();
+  }
+
+  updateDiscount(OrderProduct orderProduct, String? discount) {
+    emit(state.copyWith(orderState: OrderState.loading));
+
+    final _index =
+        state.orderItems.indexWhere((element) => element == orderProduct);
+    if (_index == -1) return; // Break the method when order item not exist
+    emit(
+      state.copyWith(
+        orderItems: state.orderItems
+          ..[_index] = orderProduct.copyWith(
+              discount: discount ?? orderProduct.discount),
         orderState: OrderState.finish,
       ),
     );
@@ -103,7 +129,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
   reduceOrderQuantity(OrderProduct orderProduct) {
     emit(state.copyWith(orderState: OrderState.loading));
 
-    final _index = state.orderItems.indexWhere((element) => element == orderProduct);
+    final _index =
+        state.orderItems.indexWhere((element) => element == orderProduct);
     if (_index == -1) return; // Break the method when order item not exist
 
     // Remove from list when quantity equal to 1
@@ -118,7 +145,9 @@ class PenjualanCubit extends Cubit<PenjualanState> {
       // Remove 1 quantity
       emit(
         state.copyWith(
-          orderItems: state.orderItems..[_index] = orderProduct.copyWith(quantity: orderProduct.quantity - 1),
+          orderItems: state.orderItems
+            ..[_index] =
+                orderProduct.copyWith(quantity: orderProduct.quantity - 1),
           orderState: OrderState.finish,
         ),
       );
@@ -130,7 +159,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
   updatePreOrder(OrderProduct orderProduct, bool preOrder) {
     emit(state.copyWith(orderState: OrderState.loading));
 
-    final _index = state.orderItems.indexWhere((element) => element == orderProduct);
+    final _index =
+        state.orderItems.indexWhere((element) => element == orderProduct);
     if (_index == -1) {
       emit(state.copyWith(orderState: OrderState.finish));
       return; // Break the method when order item not exist
@@ -138,7 +168,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
 
     emit(
       state.copyWith(
-        orderItems: state.orderItems..[_index] = orderProduct.copyWith(isPreOrder: preOrder),
+        orderItems: state.orderItems
+          ..[_index] = orderProduct.copyWith(isPreOrder: preOrder),
         orderState: OrderState.finish,
       ),
     );
@@ -166,9 +197,10 @@ class PenjualanCubit extends Cubit<PenjualanState> {
     for (OrderProduct orderItem in state.orderItems) {
       _subtotal += orderItem.getSubtotalPerProduct;
       _total += orderItem.getTotalPerProduct(state.selectedCustomer);
+      _discount += int.parse(removeIdrFormat(orderItem.discount));
     }
 
-    _discount = _subtotal - _total;
+    _total -= _discount;
 
     // Ignore subtotal and discount calculation when total greater than subtotal
     if (_total > _subtotal) {
@@ -236,7 +268,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
   fetchProductList() async {
     emit(state.copyWith(fetchProductsResult: const ResultState.loading()));
 
-    final _result = await _fetchProductListUseCase(const FetchProductListUseCaseParams());
+    final _result =
+        await _fetchProductListUseCase(const FetchProductListUseCaseParams());
 
     _result.fold(
       (l) => emit(
@@ -260,7 +293,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
   fetchBankAccountList() async {
     emit(state.copyWith(fetchBankAccountsResult: const ResultState.loading()));
 
-    final _result = await _fetchBankAccountListUse(const FetchBankAccountListParams());
+    final _result =
+        await _fetchBankAccountListUse(const FetchBankAccountListParams());
 
     _result.fold(
       (l) {
@@ -332,7 +366,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
       }
     }
 
-    emit(state.copyWith(validateOrderResult: const ResultState.success(data: null)));
+    emit(state.copyWith(
+        validateOrderResult: const ResultState.success(data: null)));
   }
 
   onDispose() {
@@ -343,7 +378,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
     emit(state.copyWith(fetchCustomersResult: const ResultState.loading()));
     _clearSearchedCustomers();
 
-    final _result = await _fetchCustomersUseCase(const FetchCustomersUseCaseParams());
+    final _result =
+        await _fetchCustomersUseCase(const FetchCustomersUseCaseParams());
 
     _result.fold(
       (l) => emit(
@@ -387,7 +423,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
   changeOrderCostCategory(int index, CostCategory costCategory) {
     emit(state.copyWith(orderState: OrderState.loading));
 
-    final _changedOrderProcut = state.orderItems[index].copyWith(costCategory: costCategory);
+    final _changedOrderProcut =
+        state.orderItems[index].copyWith(costCategory: costCategory);
 
     emit(
       state.copyWith(
@@ -404,8 +441,10 @@ class PenjualanCubit extends Cubit<PenjualanState> {
       _clearSearchedCustomers();
       return;
     }
-    final _searchedCustomers =
-        customers.where((element) => element.fullName!.toLowerCase().startsWith(value.toLowerCase())).toList();
+    final _searchedCustomers = customers
+        .where((element) =>
+            element.fullName!.toLowerCase().startsWith(value.toLowerCase()))
+        .toList();
 
     emit(state.copyWith(searchedCustomers: _searchedCustomers));
   }
@@ -425,7 +464,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
       return;
     }
 
-    final _lastFiveDigitOfTotal = int.parse(state.total.toString().substring(_totalLength - 5));
+    final _lastFiveDigitOfTotal =
+        int.parse(state.total.toString().substring(_totalLength - 5));
 
     emit(state.copyWith(
         suggestedCashAmountOptionOne: _cashAmountSuggestion(
@@ -447,7 +487,8 @@ class PenjualanCubit extends Cubit<PenjualanState> {
       return state.total;
     }
 
-    final _roundedLastFiveDigitOfTotal = (lastFiveDigitOfTotal ~/ roundedValue + 1) * roundedValue;
+    final _roundedLastFiveDigitOfTotal =
+        (lastFiveDigitOfTotal ~/ roundedValue + 1) * roundedValue;
 
     return state.total - lastFiveDigitOfTotal + _roundedLastFiveDigitOfTotal;
   }
@@ -456,7 +497,9 @@ class PenjualanCubit extends Cubit<PenjualanState> {
     emit(state.copyWith(fetchProductsResult: const ResultState.loading()));
 
     final _products = state.products
-        .where((element) => element.name?.toLowerCase().contains(keyword.toLowerCase()) ?? false)
+        .where((element) =>
+            element.name?.toLowerCase().contains(keyword.toLowerCase()) ??
+            false)
         .toList();
 
     emit(state.copyWith(
@@ -485,14 +528,17 @@ class PenjualanCubit extends Cubit<PenjualanState> {
         ],
         productPriceQuantity: null,
         isProductPackage: false);
-    if (state.orderItems.firstWhereOrNull((element) => element.product.name == _product.name) != null) return;
+    if (state.orderItems.firstWhereOrNull(
+            (element) => element.product.name == _product.name) !=
+        null) return;
 
     emit(state.copyWith(orderState: OrderState.loading));
 
     emit(state.copyWith(
       orderItems: state.orderItems
         ..add(
-          OrderProduct(product: _product, isCustomProduct: true, isProductPakage: false),
+          OrderProduct(
+              product: _product, isCustomProduct: true, isProductPakage: false),
         ),
       orderState: OrderState.finish,
     ));
@@ -504,8 +550,10 @@ class PenjualanCubit extends Cubit<PenjualanState> {
     emit(state.copyWith(isPrinted: isPrinted));
   }
 
-  void updatePrintedStatus(int orderId, SubmitOrderResponse orderResponse) async {
-    await _updateOrderPrintStatusUsecase(UpdateOrderPrintStatusUsecaseParams(orderId: "$orderId"));
+  void updatePrintedStatus(
+      int orderId, SubmitOrderResponse orderResponse) async {
+    await _updateOrderPrintStatusUsecase(
+        UpdateOrderPrintStatusUsecaseParams(orderId: "$orderId"));
     emit(
       state.copyWith(
         submitOrderResult: ResultState.success(data: orderResponse),

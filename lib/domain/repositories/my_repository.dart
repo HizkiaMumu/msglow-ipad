@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter_kasir/domain/usecases/refund_item_usecase.dart';
 
 import '../../app/cubit/main_cubit.dart';
 import '../../core/base/usecase/no_param.dart';
@@ -47,52 +48,73 @@ abstract class MyRepository {
 
   Future<Either<Failure, dynamic>> doLogout(DoLogoutUseCaseParams params);
 
-  Future<Either<Failure, LoginStatus>> checkLoginStatus(CheckLoginStatusUseCaseParams params);
+  Future<Either<Failure, LoginStatus>> checkLoginStatus(
+      CheckLoginStatusUseCaseParams params);
 
   User? getUser();
 
-  Future<Either<Failure, Login>> updateProfile(UpdateProfileUseCaseParams params);
+  Future<Either<Failure, Login>> updateProfile(
+      UpdateProfileUseCaseParams params);
 
-  Future<Either<Failure, ProductList>> fetchProductList(FetchProductListUseCaseParams params);
+  Future<Either<Failure, ProductList>> fetchProductList(
+      FetchProductListUseCaseParams params);
 
-  Future<Either<Failure, Customer>> fetchCustomers(FetchCustomersUseCaseParams params);
+  Future<Either<Failure, Customer>> fetchCustomers(
+      FetchCustomersUseCaseParams params);
 
-  Future<Either<Failure, Transaction>> fetchTransactions(FetchTransactionsUseCaseParams params);
+  Future<Either<Failure, Transaction>> fetchTransactions(
+      FetchTransactionsUseCaseParams params);
 
-  Future<Either<Failure, SubmitOrderResponse>> submitOrder(SubmitOrderUseCaseParams params);
+  Future<Either<Failure, SubmitOrderResponse>> submitOrder(
+      SubmitOrderUseCaseParams params);
 
   Future<Either<Failure, CashAmountSuggestion>> calculateCashAmountSuggestion(
       CalculateCashAmountSuggestionUseCaseParams params);
 
-  Future<Either<Failure, BaseDomain>> refundOrder(RefundOrderUseCaseParams params);
+  Future<Either<Failure, BaseDomain>> refundOrder(
+      RefundOrderUseCaseParams params);
 
-  Future<Either<Failure, CustomerElementResponse>> addCustomer(AddCustomerUseCaseParams params);
+  Future<Either<Failure, BaseDomain>> refundItem(
+      RefundItemUseCaseParams params);
 
-  Future<Either<Failure, StatusCustomerListResponse>> fetchStatusCustomerList(NoParam params);
+  Future<Either<Failure, CustomerElementResponse>> addCustomer(
+      AddCustomerUseCaseParams params);
+
+  Future<Either<Failure, StatusCustomerListResponse>> fetchStatusCustomerList(
+      NoParam params);
 
   Future<Either<Failure, ClosingResponse>> closing(ClosingUseCaseParams params);
 
-  Future<Either<Failure, ListPengeluaranResponse>> fetchListPengeluaran(FetchListPengeluaranUseCaseParams params);
+  Future<Either<Failure, ListPengeluaranResponse>> fetchListPengeluaran(
+      FetchListPengeluaranUseCaseParams params);
 
-  Future<Either<Failure, BaseResponse>> addPengeluaranBaru(AddPengeluaranBaruUseCaseParams params);
+  Future<Either<Failure, BaseResponse>> addPengeluaranBaru(
+      AddPengeluaranBaruUseCaseParams params);
 
-  Future<Either<Failure, BaseResponse>> sendClosingMail(SendClosingMailUseCaseParams params);
+  Future<Either<Failure, BaseResponse>> sendClosingMail(
+      SendClosingMailUseCaseParams params);
 
   String? getClosingMail();
 
-  Future<Either<Failure, OutcomesResponse>> fetchOutcomes(FetchOutcomesUseCaseParams params);
+  Future<Either<Failure, OutcomesResponse>> fetchOutcomes(
+      FetchOutcomesUseCaseParams params);
 
-  Future<Either<Failure, BaseResponse>> addInOutcome(AddInOutcomeUseCaseParams params);
+  Future<Either<Failure, BaseResponse>> addInOutcome(
+      AddInOutcomeUseCaseParams params);
 
-  Future<ProductCategoriesAndPackagesResponse> getProductCategoriesAndPackages();
+  Future<ProductCategoriesAndPackagesResponse>
+      getProductCategoriesAndPackages();
 
   Future<ListKasirResponse> getListKasir();
 
   Future<Either<Failure, List<BankAccount>>> fetchBankAccountList();
 
-  Future<Either<Failure, IncomeResponse>> getIncomeList({required FetchIncomeListUseCaseParams params});
+  Future<Either<Failure, IncomeResponse>> getIncomeList(
+      {required FetchIncomeListUseCaseParams params});
 
-  Future<Either<Failure, BaseDomain>> updateOrderPrintStatus(UpdateOrderPrintStatusUsecaseParams params);
+  Future<Either<Failure, BaseDomain>> updateOrderPrintStatus(
+      UpdateOrderPrintStatusUsecaseParams params);
 
-  Future<Either<Failure, BaseDomain>> updatePreOrderStatus(UpdatePreOrderStatusUseCaseParams params);
+  Future<Either<Failure, BaseDomain>> updatePreOrderStatus(
+      UpdatePreOrderStatusUseCaseParams params);
 }

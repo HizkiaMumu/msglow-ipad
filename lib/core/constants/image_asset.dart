@@ -28,6 +28,7 @@ class ImageAsset {
   static const logoBca = 'assets/images/logo_bca.png';
   static const logoBni = 'assets/images/logo_bni.png';
   static const logoMandiri = 'assets/images/logo_mandiri.png';
+  static const logoBri = 'assets/images/logo_bri.png';
 
   // Transfer Bank
   static const imgTransferBank = 'assets/images/img_transfer_bank.png';
